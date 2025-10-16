@@ -1,18 +1,17 @@
 package main
 
 import (
-    "context"
-    "fmt"
-    "log"
-    "os"
-    "log/slog"
-    "time"
+	"context"
+	"log"
+	"log/slog"
+	"os"
+	"time"
 
 	"github.com/Ullaakut/nmap/v3"
+	"github.com/durid-ah/nmap-api/internal/config"
+	"github.com/durid-ah/nmap-api/internal/cron_scheduler"
 	"github.com/go-co-op/gocron/v2"
-    "github.com/durid-ah/nmap-api/internal/config"
 )
-
 
 func initJob() gocron.Scheduler {
 	// create a scheduler
@@ -22,7 +21,7 @@ func initJob() gocron.Scheduler {
 		slog.Error("error creating scheduler", "error", err)
 		log.Fatal(err)
 	}
-	
+
 	// add a job to the scheduler
 	j, err := scheduler.NewJob(
 		gocron.CronJob("* */1 * * * *", true),
@@ -92,18 +91,19 @@ func runScanner(scanner *nmap.Scanner) {
 
 func main() {
 	cfg := config.NewConfig()
-	fmt.Printf("config: %+v", cfg)
-	// TODO: Config
+
 	// TODO: Child logger
-    opts := slog.HandlerOptions{
+	opts := slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}
 	// TODO: pass in individual logger?
 	handler := slog.NewJSONHandler(os.Stdout, &opts)
 	slog.SetDefault(slog.New(handler))
 
+	// scheduler := initJob()
+	scheduler := cronscheduler.NewBackgroundScheduler(cfg)
+	scheduler.Start()
 
-	scheduler := initJob()
 	defer func() {
 		slog.Info("shutting down scheduler")
 		err := scheduler.Shutdown()
@@ -112,10 +112,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-	
+
 	time.Sleep(time.Minute * 2)
-	
-
-
 
 }
