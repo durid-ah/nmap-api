@@ -7,9 +7,14 @@ import (
     "time"
 
     "github.com/Ullaakut/nmap/v3"
+    "github.com/durid-ah/nmap-api/config"
 )
 
 func main() {
+
+	cfg := config.NewConfig()
+	fmt.Printf("config: %+v", cfg)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
