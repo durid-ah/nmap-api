@@ -10,7 +10,7 @@ import (
 
 	"github.com/Ullaakut/nmap/v3"
 	"github.com/go-co-op/gocron/v2"
-    "github.com/durid-ah/nmap-api/config"
+    "github.com/durid-ah/nmap-api/internal/config"
 )
 
 
