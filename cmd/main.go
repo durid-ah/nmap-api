@@ -1,15 +1,18 @@
 package main
 
 import (
-	"context"
-	"log"
-	"log/slog"
-	"os"
-	"time"
+    "context"
+    "fmt"
+    "log"
+    "os"
+    "log/slog"
+    "time"
 
 	"github.com/Ullaakut/nmap/v3"
 	"github.com/go-co-op/gocron/v2"
+    "github.com/durid-ah/nmap-api/config"
 )
+
 
 func initJob() gocron.Scheduler {
 	// create a scheduler
@@ -88,6 +91,8 @@ func runScanner(scanner *nmap.Scanner) {
 }
 
 func main() {
+	cfg := config.NewConfig()
+	fmt.Printf("config: %+v", cfg)
 	// TODO: Config
 	// TODO: Child logger
     opts := slog.HandlerOptions{
