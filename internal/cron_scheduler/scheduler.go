@@ -6,8 +6,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/durid-ah/nmap-api/internal/config"
 	"github.com/go-co-op/gocron/v2"
+	"github.com/durid-ah/nmap-api/internal/config"
+	"github.com/durid-ah/nmap-api/internal/nmap_scanner"
 )
 
 type contextKey string
@@ -18,6 +19,7 @@ const (
 
 type BackgroundScheduler struct {
 	scheduler gocron.Scheduler
+	job       gocron.Job
 	cancel    context.CancelFunc
 }
 
@@ -32,14 +34,23 @@ func NewBackgroundScheduler(config *config.Config) *BackgroundScheduler {
 	}
 
 	// add a job to the scheduler
-	j, err := scheduler.NewJob(
+	job, err := scheduler.NewJob(
 		gocron.CronJob(config.NmapCronTab, false),
 		gocron.NewTask(
 			func(_ctx context.Context) {
-				scannerCtx, scannerCtxCancel := context.WithTimeout(_ctx, 5*time.Minute)
+				scannerCtx, scannerCtxCancel := context.WithTimeout(
+					context.WithValue(_ctx, ownerContextKey, "scanner"), 5*time.Minute)
 				defer scannerCtxCancel()
 				slog.Info("running scanner", "context", scannerCtx)
-				slog.Info("running job")
+				scanner, err := nmapscanner.NewNmapScanner(scannerCtx, config)
+				if err != nil {
+					slog.Error("unable to create nmap scanner", "error", err)
+					return
+				}
+				err = scanner.Run(scannerCtx)
+				if err != nil {
+					slog.Error("unable to run nmap scan", "error", err)
+				}
 			},
 		),
 		gocron.WithContext(ctx),
@@ -50,13 +61,14 @@ func NewBackgroundScheduler(config *config.Config) *BackgroundScheduler {
 		log.Fatal(err)
 	}
 
-	slog.Info("job created", "job_id", j.ID())
+	slog.Info("job created", "job_id", job.ID())
 
-	return &BackgroundScheduler{scheduler: scheduler, cancel: cancel}
+	return &BackgroundScheduler{scheduler: scheduler, job: job, cancel: cancel}
 }
 
 func (s *BackgroundScheduler) Start() {
 	s.scheduler.Start()
+	// s.job.RunNow()
 }
 
 func (s *BackgroundScheduler) Shutdown() error {
