@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"log/slog"
 	"os"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/durid-ah/nmap-api/internal/config"
 	"github.com/durid-ah/nmap-api/internal/cron_scheduler"
+	"github.com/durid-ah/nmap-api/internal/nmap_scanner"
 )
 
 func main() {
@@ -17,11 +19,16 @@ func main() {
 	opts := slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}
-	// TODO: pass in individual logger?
+
 	handler := slog.NewJSONHandler(os.Stdout, &opts)
 	slog.SetDefault(slog.New(handler))
 
-	// scheduler := initJob()
+	// run the scanner once at startup to populate the db
+	slog.Info("running intial scan to populate the db...")
+	scanTask := nmapscanner.CreateScannerTask(cfg)
+	scanTask(context.Background())
+	slog.Info("intial scan completed")
+
 	scheduler := cronscheduler.NewBackgroundScheduler(cfg)
 	scheduler.Start()
 

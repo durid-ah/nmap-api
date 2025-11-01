@@ -4,9 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/Ullaakut/nmap/v3"
 	"github.com/durid-ah/nmap-api/internal/config"
+)
+
+type contextKey string
+
+const (
+	ownerContextKey contextKey = "owner"
 )
 
 type NmapScanner struct {
@@ -29,7 +36,10 @@ func NewNmapScanner(ctx context.Context, config *config.Config) (*NmapScanner, e
 func (s *NmapScanner) Run(ctx context.Context) error {
 	result, warnings, err := s.scanner.Run()
 	if len(*warnings) > 0 {
-		slog.Warn("run finished with warnings", "warnings", *warnings) // Warnings are non-critical errors from nmap.
+		slog.Warn("run finished with warnings") // Warnings are non-critical errors from nmap.
+		for _, warning := range *warnings {
+			slog.Warn("nmap warning", "warning", warning)
+		}
 	}
 
 	if err != nil {
@@ -44,9 +54,28 @@ func (s *NmapScanner) Run(ctx context.Context) error {
 			continue
 		}
 
-		slog.Info("Hostname", "hostname", host.Hostnames[0], "ip", host.Addresses[0])
+		slog.Info("Hostname", "hostname", host.Hostnames[0].Name, "ip", host.Addresses[0].Addr)
 	}
 
 	slog.Info("Nmap done", "hosts_up", len(result.Hosts), "elapsed", result.Stats.Finished.Elapsed)
 	return nil
 }
+
+func CreateScannerTask(config *config.Config) func(ctx context.Context) {
+	return func(_ctx context.Context) {
+		scannerCtx, scannerCtxCancel := context.WithTimeout(
+			context.WithValue(_ctx, ownerContextKey, "scanner"), 5*time.Minute)
+		defer scannerCtxCancel()
+		slog.Info("running scanner", "owner", scannerCtx.Value(ownerContextKey))
+		scanner, err := NewNmapScanner(scannerCtx, config)
+		if err != nil {
+			slog.Error("unable to create nmap scanner","owner", scannerCtx.Value(ownerContextKey), "error", err)
+			return
+		}
+		err = scanner.Run(scannerCtx)	
+		if err != nil {
+			slog.Error("unable to run nmap scan","owner", scannerCtx.Value(ownerContextKey), "error", err)
+		}
+	}
+}
+
