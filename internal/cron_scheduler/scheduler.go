@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"log/slog"
-	"time"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/durid-ah/nmap-api/internal/config"
@@ -37,21 +36,7 @@ func NewBackgroundScheduler(config *config.Config) *BackgroundScheduler {
 	job, err := scheduler.NewJob(
 		gocron.CronJob(config.NmapCronTab, false),
 		gocron.NewTask(
-			func(_ctx context.Context) {
-				scannerCtx, scannerCtxCancel := context.WithTimeout(
-					context.WithValue(_ctx, ownerContextKey, "scanner"), 5*time.Minute)
-				defer scannerCtxCancel()
-				slog.Info("running scanner", "context", scannerCtx)
-				scanner, err := nmapscanner.NewNmapScanner(scannerCtx, config)
-				if err != nil {
-					slog.Error("unable to create nmap scanner", "error", err)
-					return
-				}
-				err = scanner.Run(scannerCtx)
-				if err != nil {
-					slog.Error("unable to run nmap scan", "error", err)
-				}
-			},
+			nmapscanner.CreateScannerTask(config),
 		),
 		gocron.WithContext(ctx),
 	)
@@ -68,7 +53,7 @@ func NewBackgroundScheduler(config *config.Config) *BackgroundScheduler {
 
 func (s *BackgroundScheduler) Start() {
 	s.scheduler.Start()
-	// s.job.RunNow()
+	s.job.RunNow()
 }
 
 func (s *BackgroundScheduler) Shutdown() error {
