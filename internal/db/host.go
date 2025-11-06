@@ -78,4 +78,3 @@ func (s *Storage) DeleteHost(ctx context.Context, hostname string) error {
 	}
 	return nil
 }
-
