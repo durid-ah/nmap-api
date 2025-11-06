@@ -69,13 +69,12 @@ func CreateScannerTask(config *config.Config) func(ctx context.Context) {
 		slog.Info("running scanner", "owner", scannerCtx.Value(ownerContextKey))
 		scanner, err := NewNmapScanner(scannerCtx, config)
 		if err != nil {
-			slog.Error("unable to create nmap scanner","owner", scannerCtx.Value(ownerContextKey), "error", err)
+			slog.Error("unable to create nmap scanner", "owner", scannerCtx.Value(ownerContextKey), "error", err)
 			return
 		}
-		err = scanner.Run(scannerCtx)	
+		err = scanner.Run(scannerCtx)
 		if err != nil {
-			slog.Error("unable to run nmap scan","owner", scannerCtx.Value(ownerContextKey), "error", err)
+			slog.Error("unable to run nmap scan", "owner", scannerCtx.Value(ownerContextKey), "error", err)
 		}
 	}
 }
-
