@@ -63,3 +63,19 @@ func (s *Storage) GetHostIPMap(ctx context.Context) (map[string]string, error) {
 	}
 	return hostIPMap, nil
 }
+
+func (s *Storage) DeleteHost(ctx context.Context, hostname string) error {
+	result, err := gorm.G[Host](s.db).
+		Where("hostname = ?", hostname).
+		Delete(ctx)
+	if err != nil {
+		s.logger.Error("failed to delete host", "error", err, "hostname", hostname)
+		return err
+	}
+	if result == 0 {
+		s.logger.Warn("no host found to delete", "hostname", hostname)
+		return fmt.Errorf("no host found to delete")
+	}
+	return nil
+}
+
