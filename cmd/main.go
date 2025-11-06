@@ -9,18 +9,18 @@ import (
 
 	"github.com/durid-ah/nmap-api/internal/config"
 	"github.com/durid-ah/nmap-api/internal/cron_scheduler"
-	"github.com/durid-ah/nmap-api/internal/nmap_scanner"
 	"github.com/durid-ah/nmap-api/internal/db"
+	"github.com/durid-ah/nmap-api/internal/nmap_scanner"
 )
 
 func main() {
 	cfg := config.NewConfig()
-	
+
 	_, err := db.NewStorage(slog.Default())
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	// TODO: Child logger
 	opts := slog.HandlerOptions{
 		Level: slog.LevelInfo,

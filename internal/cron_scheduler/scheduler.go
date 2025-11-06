@@ -5,9 +5,9 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/go-co-op/gocron/v2"
 	"github.com/durid-ah/nmap-api/internal/config"
 	"github.com/durid-ah/nmap-api/internal/nmap_scanner"
+	"github.com/go-co-op/gocron/v2"
 )
 
 type contextKey string
