@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Ullaakut/nmap/v3"
-	"github.com/durid-ah/nmap-api/internal/config"
+	"github.com/durid-ah/nmap-api/config"
 )
 
 type contextKey string
