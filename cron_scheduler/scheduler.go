@@ -6,7 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/durid-ah/nmap-api/config"
-	"github.com/durid-ah/nmap-api/nmap_scanner"
+	"github.com/durid-ah/nmap-api/scanner"
 	"github.com/go-co-op/gocron/v2"
 )
 

@@ -10,7 +10,7 @@ import (
 	"github.com/durid-ah/nmap-api/config"
 	"github.com/durid-ah/nmap-api/cron_scheduler"
 	"github.com/durid-ah/nmap-api/db"
-	"github.com/durid-ah/nmap-api/nmap_scanner"
+	"github.com/durid-ah/nmap-api/scanner"
 )
 
 func main() {
